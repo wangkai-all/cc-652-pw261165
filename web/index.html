@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>事件仓位图筛选服务</title>
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<header>
+  <h1>事件仓位图筛选服务</h1>
+  <div id="status-bar" class="status-bar">加载中…</div>
+</header>
+
+<main class="layout">
+  <!-- 左：筛选面板 -->
+  <section class="panel filter-panel">
+    <h2>① 组合筛选条件</h2>
+    <div class="combinator">
+      条件之间：
+      <label><input type="radio" name="combinator" value="AND" checked /> 交集 AND</label>
+      <label><input type="radio" name="combinator" value="OR" /> 并集 OR</label>
+    </div>
+    <div id="field-groups"></div>
+
+    <h2>② 执行查询</h2>
+    <div class="row">
+      <button id="btn-query-index" class="primary">走位图索引查询</button>
+      <button id="btn-query-scan">走全表扫描查询</button>
+    </div>
+    <p class="hint">同一组条件分别走两条路径，扫描结果作为正确性基准，可对比读取字节数与文件数。</p>
+
+    <h2>③ 查询会话（绑定代次）</h2>
+    <div id="query-list" class="query-list"><p class="muted">暂无查询</p></div>
+  </section>
+
+  <!-- 中：结果与预览 -->
+  <section class="panel result-panel">
+    <h2>命中结果与真实行预览</h2>
+    <div id="result-meta" class="muted">尚未执行查询</div>
+    <div id="read-compare" class="read-compare hidden">
+      <table>
+        <thead><tr><th>路径</th><th>读取字节</th><th>位图文件数</th><th>扫描行数</th><th>命中</th></tr></thead>
+        <tbody id="read-compare-body"></tbody>
+      </table>
+    </div>
+    <div id="stale-banner" class="banner warn hidden"></div>
+    <table id="preview-table" class="preview hidden">
+      <thead><tr><th>行号</th><th>业务编号</th><th>地区</th><th>渠道</th><th>标签</th><th>内容</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="pager">
+      <button id="prev-page">上一页</button>
+      <span id="page-info"></span>
+      <button id="next-page">下一页</button>
+      <button id="close-query" class="danger">关闭查询（释放代次绑定）</button>
+    </div>
+  </section>
+
+  <!-- 右：数据与整理 -->
+  <section class="panel ops-panel">
+    <h2>数据代次</h2>
+    <div id="gen-list"></div>
+
+    <h2>整理（Compaction）</h2>
+    <div class="row wrap">
+      <button id="btn-compact-start">开始整理</button>
+      <button id="btn-compact-pause">暂停</button>
+      <button id="btn-compact-resume">恢复</button>
+      <button id="btn-compact-abort" class="danger">中止</button>
+    </div>
+    <div id="compact-status" class="compact-status">空闲</div>
+
+    <h2>写入 / 更正 / 删除</h2>
+    <details open>
+      <summary>插入新事件</summary>
+      <form id="put-form" class="form">
+        <input name="event_id" placeholder="业务编号，如 EVT-900001" required />
+        <input name="region" placeholder="地区（留空=空值）" />
+        <input name="channel" placeholder="渠道（留空=空值）" />
+        <input name="tags" placeholder="标签逗号分隔，留空=空集合" />
+        <button type="submit">插入</button>
+      </form>
+    </details>
+    <details>
+      <summary>更正类别 / 标签</summary>
+      <form id="update-form" class="form">
+        <input name="event_id" placeholder="业务编号" required />
+        <input name="region" placeholder="新地区（留空则不改）" />
+        <input name="channel" placeholder="新渠道（留空则不改）" />
+        <input name="tags" placeholder="新标签逗号分隔（留空则不改）" />
+        <button type="submit">更正（撤旧位图+建新位图）</button>
+      </form>
+    </details>
+    <details>
+      <summary>删除记录</summary>
+      <form id="delete-form" class="form">
+        <input name="event_id" placeholder="业务编号" required />
+        <button type="submit" class="danger">删除（加入删除掩码）</button>
+      </form>
+    </details>
+    <div id="ops-msg" class="ops-msg"></div>
+  </section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

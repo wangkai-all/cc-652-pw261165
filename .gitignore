@@ -32,3 +32,9 @@ test-results/
 *.sqlite3-shm
 *.sqlite3-journal
 !*.traineddata.gz
+
+# local event-store runtime data
+data/
+e2e-data/
+rejected/
+.pytest_cache/
